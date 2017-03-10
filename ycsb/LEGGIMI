@@ -1,0 +1,55 @@
+CREATE TABLE usertable (
+    YCSB_KEY VARCHAR(191) NOT NULL,
+    FIELD0 TEXT, FIELD1 TEXT,
+    FIELD2 TEXT, FIELD3 TEXT,
+    FIELD4 TEXT, FIELD5 TEXT,
+    FIELD6 TEXT, FIELD7 TEXT,
+    FIELD8 TEXT, FIELD9 TEXT,
+   PRIMARY KEY (YCSB_KEY)
+);
+
+CREATE TABLE usertable ( YCSB_KEY VARCHAR(191) NOT NULL, FIELD0 STRING, FIELD1 STRING, FIELD2 STRING, FIELD3 STRING, FIELD4 STRING, FIELD5 STRING, FIELD6 STRING, FIELD7 STRING, FIELD8 STRING, FIELD9 STRING, PRIMARY KEY (YCSB_KEY));
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -p recordcount=100000
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 4 -s -p operationcount=100000
+
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -p recordcount=100000
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 4 -s  -p operationcount=100000
+
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 4 -s > /data2/ycsb/mysql.run
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 4 -s > /data2/ycsb/herd.run
+
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 4 -s > /data2/ycsb/mysql.run
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 4 -s > /data2/ycsb/herd.run
+
+
+
+
+
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 200 -s > /data2/ycsb/ems1.mysql.run
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 200 -s > /data2/ycsb/ems1.herd.run
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 200 -s > /data2/ycsb/workloada.herd.run
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 200 -s > /data2/ycsb/workloada.mysql.run
+
+/data2/ycsb/bin/ycsb load jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/mysqlhdd.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 200 -s > /data2/ycsb/workloada.hdd.mysql.run
+
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/mysql.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 200 -s > /data2/ycsb/ems1run.mysql.run
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/ems1 -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 200 -s > /data2/ycsb/ems1run.herd.run
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/herd.properties -cp /data2/ycsb/jdbc-binding/herddb-jdbc-*.jar -threads 200 -s > /data2/ycsb/workloadarun.herd.run
+
+/data2/ycsb/bin/ycsb run jdbc -P /data2/ycsb/workloads/workloada -P /data2/ycsb/jdbc-binding/mysqlhdd.properties -cp /data2/ycsb/jdbc-binding/mysql-connector-java-5.1.39.jar -threads 200 -s > /data2/ycsb/workloadarun.hdd.mysql.run
+
