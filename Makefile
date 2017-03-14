@@ -31,10 +31,11 @@ build-slave:
 
 run-herd:
 	set -xeu
+	-mkdir -p $(HERD_TMP_DATA_DIR)/$(CONTAINER_NAME)
 	docker run -it -d \
 	    --name $(CONTAINER_NAME) \
 	    --hostname $(CONTAINER_NAME) \
-	    -v $(LOCAL_DIR):/data \
+	    -v $(HERD_TMP_DATA_DIR)/$(CONTAINER_NAME):/data \
 	    -e PURGE_DATA_AT_START=true \
 	    -e HERD_PORT=$(HERD_PORT) \
 	    -e HERD_MODE=$(HERD_MODE) \
