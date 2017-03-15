@@ -3,8 +3,15 @@
 run-standalone:
 	set -xeu
 	$(eval include conf/standalone.conf)
-	docker rm -f herddb || true
 	make run-herd
+
+
+herd-shell-standalone:
+	set -xeu
+	$(eval include conf/standalone.conf)
+	docker exec -i $(CONTAINER_NAME) \
+	    /bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:$(HERD_PORT) -sc
+
 
 run-ycsb-standalone:
 	set -xeu
@@ -13,7 +20,10 @@ run-ycsb-standalone:
 	mkdir -p $(REPORT_DIR)
 	cp ycsb/herd.properties $(REPORT_DIR)/
 	make export-vars DEST_DIR=$(REPORT_DIR)
-	sed -i 's|@@HERD_PORT@@|$(HERD_PORT)|g' $(REPORT_DIR)/herd.properties
+	sed -i -e 's|@@TYPE@@|server|g' \
+	       -e 's|@@PORT@@|$(HERD_PORT)|g' \
+	       -e 's|@@HOST@@|localhost|g' \
+	    $(REPORT_DIR)/herd.properties
 	
 	for workload in $(shell ls ycsb/workloads.torun); do
 		
@@ -30,8 +40,8 @@ run-ycsb-standalone:
 		sleep 2
 
 		docker exec -i $(CONTAINER_NAME) \
-		/bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:$(HERD_PORT) -q \
-		    "CREATE TABLE usertable ( YCSB_KEY VARCHAR(191) NOT NULL, FIELD0 STRING, FIELD1 STRING, FIELD2 STRING, FIELD3 STRING, FIELD4 STRING, FIELD5 STRING, FIELD6 STRING, FIELD7 STRING, FIELD8 STRING, FIELD9 STRING, PRIMARY KEY (YCSB_KEY));"
+		    /bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:$(HERD_PORT) -q \
+			"CREATE TABLE usertable ( YCSB_KEY VARCHAR(191) NOT NULL, FIELD0 STRING, FIELD1 STRING, FIELD2 STRING, FIELD3 STRING, FIELD4 STRING, FIELD5 STRING, FIELD6 STRING, FIELD7 STRING, FIELD8 STRING, FIELD9 STRING, PRIMARY KEY (YCSB_KEY));"
 
 		mkdir -p $(REPORT_DIR)/$${workload}
 

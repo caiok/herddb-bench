@@ -18,7 +18,7 @@ fi
 cp -vaf /conf/* ${HERD_DIR}/conf || true
 chown -R "$HERD_USER" ${HERD_DIR}/conf
 
-# Herd setup
+# Herd setup: server.properties
 sed -r -i.bak \
 	-e "s|^server.baseDir.*=.*|server.baseDir=${HERD_DATA_DIR}|" \
 	-e "s|^server.users.file.*=.*|server.users.file=${HERD_DIR}/conf/users|" \
@@ -26,6 +26,9 @@ sed -r -i.bak \
 
 if [[ "${ZK_SERVERS}" != "" ]]; then
 	sed -r -i "s|^server.zookeeper.address.*=.*|server.zookeeper.address=${ZK_SERVERS}|" ${HERD_DIR}/conf/server.properties
+fi
+if [[ "${HERD_HOST}" != "" ]]; then
+	sed -r -i "s|^server.host.*=.*|server.host=${HERD_HOST}|" ${HERD_DIR}/conf/server.properties
 fi
 if [[ "${HERD_PORT}" != "" ]]; then
 	sed -r -i "s|^server.port.*=.*|server.port=${HERD_PORT}|" ${HERD_DIR}/conf/server.properties
@@ -59,6 +62,25 @@ if [[ "${BK_ACKQUORUM_SIZE}" != "" ]]; then
 fi
 
 diff ${HERD_DIR}/conf/server.properties.bak ${HERD_DIR}/conf/server.properties || true
+
+# Herd setup: setenv.sh
+if [[ "${HERD_MEMORY}" != "" ]]; then
+        sed -r -i.bak \
+                -e "s|\-Xmx[^ ]+|-Xmx${HERD_MEMORY}|g" \
+                -e "s|\-Xms[^ ]+|-Xms${HERD_MEMORY}|g" \
+            ${HERD_DIR}/bin/setenv.sh
+fi
+
+diff ${HERD_DIR}/bin/setenv.sh.bak ${HERD_DIR}/bin/setenv.sh || true
+
+# Herd setup: logging
+if [[ "${BK_LOGGING_LEVEL}" != "" ]]; then
+        sed -r -i.bak \
+                -e "s|org\.apache\.bookkeeper\.level.*=.*|org.apache.bookkeeper.level=${BK_LOGGING_LEVEL}|g" \
+            ${HERD_DIR}/conf/logging.properties
+fi
+
+diff ${HERD_DIR}/conf/logging.properties ${HERD_DIR}/conf/logging.properties || true
 # -------------- #
 
 # -------------- #

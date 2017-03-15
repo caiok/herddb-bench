@@ -7,6 +7,8 @@ RUN apk add --no-cache \
     su-exec
 
 ENV HERD_USER=herddb \
+    HERD_MEMORY= \
+    HERD_HOST= \
     HERD_PORT= \
     HERD_BUILD_PORT=7000 \
     HERD_DIR=/opt/herddb \
@@ -20,6 +22,7 @@ ENV HERD_USER=herddb \
     BK_ENSAMBLE_SIZE=1 \
     BK_WRITE_QUORUM_SIZE=1 \
     BK_ACKQUORUM_SIZE=1 \
+    BK_LOGGING_LEVEL= \
     PURGE_DATA_AT_START=false
 
 # Add a user and make dirs
