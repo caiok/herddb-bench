@@ -3,7 +3,6 @@
 run-standalone:
 	set -xeu
 	$(eval include conf/standalone.conf)
-	mkdir -p $(LOCAL_DIR)
 	docker rm -f herddb || true
 	make run-herd
 
@@ -11,36 +10,49 @@ run-ycsb-standalone:
 	set -xeu
 	$(eval include conf/standalone.conf)
 	
-	mkdir -p reports
+	mkdir -p $(REPORT_DIR)
+	cp ycsb/herd.properties $(REPORT_DIR)/
+	make export-vars DEST_DIR=$(REPORT_DIR)
+	sed -i 's|@@HERD_PORT@@|$(HERD_PORT)|g' $(REPORT_DIR)/herd.properties
 	
-	for workload in $(shell ls ycsb/workloads); do
-	    make run-standalone
-	    
-	    sleep 2
-#	    docker exec -it $(CONTAINER_NAME) \
-#			/bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:7000 -q 'select * from sysnodes'
-	
-		docker exec -i $(CONTAINER_NAME) \
-		    /bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:7000 -q \
-			"CREATE TABLE usertable ( YCSB_KEY VARCHAR(191) NOT NULL, FIELD0 STRING, FIELD1 STRING, FIELD2 STRING, FIELD3 STRING, FIELD4 STRING, FIELD5 STRING, FIELD6 STRING, FIELD7 STRING, FIELD8 STRING, FIELD9 STRING, PRIMARY KEY (YCSB_KEY));"
+	for workload in $(shell ls ycsb/workloads.torun); do
 		
-		$(YCSB_DIR)/bin/ycsb load jdbc \
-		    -P ycsb/workloads/$${workload} \
-		    -P ycsb/jdbc-binding/herd.properties \
-		    -cp ycsb/jdbc-binding/herddb-jdbc-*.jar \
-		    -threads $(THREADS_NUMBER) \
-		    -s -p recordcount=$(OPERATION_COUNT) \
-		    > reports/herddb-$${workload}.load.run
+		set +x
+		@echo
+		@echo "======================================"
+		@echo "  Running workload " $${workload}
+		@echo "======================================"
+		@echo
+		set -x
+	
+		make run-standalone
 
-		$(YCSB_DIR)/bin/ycsb run jdbc \
-		    -P ycsb/workloads/$${workload} \
-		    -P ycsb/jdbc-binding/herd.properties \
-		    -cp ycsb/jdbc-binding/herddb-jdbc-*.jar \
-		    -threads $(THREADS_NUMBER) \
-		    -s -p operationcount=$(OPERATION_COUNT) \
-		    > reports/herddb-$${workload}.run.run
+		sleep 2
+
+		docker exec -i $(CONTAINER_NAME) \
+		/bin/bash /opt/herddb/bin/herddb-cli.sh -x jdbc:herddb:server:localhost:$(HERD_PORT) -q \
+		    "CREATE TABLE usertable ( YCSB_KEY VARCHAR(191) NOT NULL, FIELD0 STRING, FIELD1 STRING, FIELD2 STRING, FIELD3 STRING, FIELD4 STRING, FIELD5 STRING, FIELD6 STRING, FIELD7 STRING, FIELD8 STRING, FIELD9 STRING, PRIMARY KEY (YCSB_KEY));"
+
+		mkdir -p $(REPORT_DIR)/$${workload}
+
+		$(YCSB_DIR)/bin/ycsb load jdbc -s  \
+		-P ycsb/workloads/$${workload} \
+		-P $(REPORT_DIR)/herd.properties \
+		-cp ycsb/jdbc-binding/herddb-jdbc-*.jar \
+		-threads $(THREADS_NUMBER) \
+		-p recordcount=$(RECORD_COUNT) \
+		> $(REPORT_DIR)/$${workload}/herddb-$${workload}.load.run
+
+		$(YCSB_DIR)/bin/ycsb run jdbc -s \
+		-P ycsb/workloads/$${workload} \
+		-P $(REPORT_DIR)/herd.properties \
+		-cp ycsb/jdbc-binding/herddb-jdbc-*.jar \
+		-threads $(THREADS_NUMBER) \
+		-p operationcount=$(OPERATION_COUNT) \
+		-target $(OPERATION_COUNT) \
+		> $(REPORT_DIR)/$${workload}/herddb-$${workload}.run.run
 
 		# Debug
-		break
+		#break
 
 	done

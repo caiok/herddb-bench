@@ -31,7 +31,7 @@ build-slave:
 
 run-herd:
 	set -xeu
-	-mkdir -p $(HERD_TMP_DATA_DIR)/$(CONTAINER_NAME)
+	mkdir -p $(HERD_TMP_DATA_DIR)/$(CONTAINER_NAME)
 	docker run -it -d \
 	    --name $(CONTAINER_NAME) \
 	    --hostname $(CONTAINER_NAME) \
@@ -47,6 +47,7 @@ run-herd:
 	    -e BK_ENSAMBLE_SIZE=$(BK_ENSAMBLE_SIZE) \
 	    -e BK_WRITE_QUORUM_SIZE=$(BK_WRITE_QUORUM_SIZE) \
 	    -e BK_ACKQUORUM_SIZE=$(BK_ACKQUORUM_SIZE) \
+	    -p $(HERD_PORT):$(HERD_PORT) \
 	    $(DOCKER_HERD_IMAGE)
 
 # Expects SSH_HOST=<host> as argument
@@ -54,7 +55,8 @@ run-herd-ssh:
 	set -xeu
 	if [[ "$(SSH_HOST)" == "" ]]; then echo "Need SSH_HOST"; exit 1; fi
 	
-	ssh root@$(SSH_HOST)
+	ssh -T root@$(SSH_HOST) <<- EOF
+		mkdir -p $(HERD_TMP_DATA_DIR)/$(CONTAINER_NAME)
 		docker run -it -d \
 			--name $(CONTAINER_NAME) \
 			--hostname $(CONTAINER_NAME) \
@@ -70,8 +72,10 @@ run-herd-ssh:
 			-e BK_ENSAMBLE_SIZE=$(BK_ENSAMBLE_SIZE) \
 			-e BK_WRITE_QUORUM_SIZE=$(BK_WRITE_QUORUM_SIZE) \
 			-e BK_ACKQUORUM_SIZE=$(BK_ACKQUORUM_SIZE) \
+			-p $(HERD_PORT):$(HERD_PORT) \
 			$(DOCKER_IMAGE)
-
+	EOF 
+	
 # Expects SLAVE_NAME=<host>
 run-herd-slave:	
 	$(eval SSH_KEY := $(shell cat ~/.ssh/id_rsa.pub))
@@ -92,3 +96,39 @@ run-herd-slave:
 	ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
 		root@$${ip} docker info > /dev/null && echo "Test ok"
 	
+# Expects DEST_DIR=<dir>
+export-vars:	
+	set -xeu
+	if [[ "$(DEST_DIR)" == "" ]]; then echo "Need DEST_DIR"; exit 1; fi
+	
+	cat <<- EOF > $(DEST_DIR)/parameters.conf
+		HERD_BUILD_DIR=$(HERD_BUILD_DIR)
+		HERD_ZIP=$(HERD_ZIP)
+		HERD_TMP_DATA_DIR=$(HERD_TMP_DATA_DIR)
+
+		DOCKER_HERD_IMAGE=$(DOCKER_HERD_IMAGE)
+		DOCKER_SLAVE_IMAGE=$(DOCKER_SLAVE_IMAGE)
+
+		HERD_PORT=$(HERD_PORT)
+
+		YCSB_DIR=$(YCSB_DIR)
+
+
+		CONTAINER_NAME=$(CONTAINER_NAME)
+
+		REPORT_DIR=$(REPORT_DIR)
+
+		HERD_MODE=$(HERD_MODE)
+		HERD_NODE_ID=$(HERD_NODE_ID)
+		HERD_SSL=$(HERD_SSL)
+		ZK_SERVERS=$(ZK_SERVERS)
+		BK_START=$(BK_START)
+		BK_PORT=$(BK_PORT)
+		BK_ENSAMBLE_SIZE=$(BK_ENSAMBLE_SIZE)
+		BK_WRITE_QUORUM_SIZE=$(BK_WRITE_QUORUM_SIZE)
+		BK_ACKQUORUM_SIZE=$(BK_ACKQUORUM_SIZE)
+
+		THREADS_NUMBER=$(THREADS_NUMBER)
+		RECORD_COUNT=$(RECORD_COUNT)
+		OPERATION_COUNT=$(OPERATION_COUNT)
+	EOF
